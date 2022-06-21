@@ -18,7 +18,7 @@ import { ThemeProvider } from '@mui/material/styles';
 
 
 
-export default function Login({ usuarios, setIdLogeado }) {
+export default function Login({ usuarios, setIdLogeado, setLogeado }) {
 
     const navigate = useNavigate();
     let [Email, setEmail] = useState('');
@@ -33,7 +33,7 @@ export default function Login({ usuarios, setIdLogeado }) {
             return user.email === Email
         })
 
-        
+
 
         /* Que existan datos */
         if (!Password|| !Email) {
@@ -44,12 +44,17 @@ export default function Login({ usuarios, setIdLogeado }) {
         } else {
 
             setIdLogeado(usuarioBuscado.id)
+            setLogeado(true)
             navigate('/todo', {replace: true})
 
         }
 
+        
 
     };
+    const loge = (event) => {
+        navigate('/registro')
+    }
 
 
 
@@ -127,11 +132,9 @@ export default function Login({ usuarios, setIdLogeado }) {
 
                                 </Grid>
                                 <Grid item>
-                                    <Mandar to="/registro" variant="body2">
-                                        <Link>
+                                        <Link onClick={loge}>
                                             {"Aun no tengo Cuenta"}
                                         </Link>
-                                    </Mandar>
                                 </Grid>
                             </Grid>
                         </Box>

@@ -29,10 +29,12 @@ export default function Register({ usuarios, setUsuarios }) {
             nombre: data.get('nombre'),
             email: data.get('email'),
             password: data.get('password'),
-            todos: []
+            todos: [
+                
+            ]
         }
 
-        if (!data.get('nombre') || !data.get('email' || !data.get('password'))) {
+        if (!data.get('nombre') || !data.get('email') || !data.get('password')) {
             console.log('faltan datos')
 
         } else {
@@ -44,6 +46,10 @@ export default function Register({ usuarios, setUsuarios }) {
         }
 
     };
+
+    const reg = (event) => {
+        navigate('/login')
+    }
 
     const tema = Theme;
 
@@ -109,11 +115,9 @@ export default function Register({ usuarios, setUsuarios }) {
 
                             </Grid>
                             <Grid item>
-                                <Mandar to="/" variant="body2">
-                                    <Link>
+                                    <Link onClick={reg}>
                                         {"Ya tengo una cuenta"}
                                     </Link>
-                                </Mandar>
                             </Grid>
                         </Grid>
                     </Box>

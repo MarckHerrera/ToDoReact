@@ -1,6 +1,6 @@
-import { Container, CssBaseline } from '@mui/material'
+import { Button, Container, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Fab, TextField } from '@mui/material'
 import { Box, ThemeProvider } from '@mui/system'
-import React from 'react'
+import React, { useState } from 'react'
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -16,11 +16,13 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import CommentIcon from '@mui/icons-material/Comment';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 
 
-const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
+const ToDoList = ({ usuarios, setUsuarios, idLogeado, setIdLogeado }) => {
 
-
+    /* navb i */
     const [auth, setAuth] = React.useState(true);
     const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -33,17 +35,61 @@ const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
         setAnchorEl(event.currentTarget);
     };
 
-    const handleClose = () => {
+    const handleClose1 = () => {
         setAnchorEl(null);
     };
+    /* navb f */
+
+
+
     /* mis cosas */
     const tema = Theme;
 
     let usuarioBuscado = usuarios.find((user) => {
-        return user.email === Email
+        return user.id === idLogeado
     })
 
+    let [texto, setTexto] = useState('');
+    let [usuarioS, setUsuarioS] = useState(usuarioBuscado);
+
+
+
+
+
+    const crearLista = () => {
+
+        let nuevoTodo = {
+
+            id: 0,
+            check: false,
+            texto: texto,
+
+        }
+        if (!texto) {
+            console.log('faltan datos')
+
+        } else {
+            let cantidad = (usuarioS.todos.length)
+        
+            setUsuarioS(
+                {
+                    id: usuarioS.id, 
+                    nombre: usuarioS.nombre, 
+                    email: usuarioS.email, 
+                    password: usuarioS.password, 
+                    todos: [...usuarioS.todos, { id: cantidad, check: false, texto: texto }]
+                }
+            )
+
+            setOpen(false)
+        }
+
+    };
     /* mis cosasas/// */
+
+
+
+    /* lista i */
     const [checked, setChecked] = React.useState([0]);
 
     const handleToggle = (value) => () => {
@@ -58,7 +104,19 @@ const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
 
         setChecked(newChecked);
     };
+    /* lista f */
 
+    /* Dialog i */
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose2 = () => {
+        setOpen(false);
+    };
+    /* Dialog f */
     return (
         <>
             <ThemeProvider theme={tema}>
@@ -66,7 +124,7 @@ const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
                     <Toolbar>
 
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            To Do List de
+                            To Do List de {usuarioS.nombre}
                         </Typography>
                         <div>
                             <IconButton
@@ -92,10 +150,10 @@ const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
                                     horizontal: 'right',
                                 }}
                                 open={Boolean(anchorEl)}
-                                onClose={handleClose}
+                                onClose={handleClose1}
                             >
-                                <MenuItem onClick={handleClose}>Profile</MenuItem>
-                                <MenuItem onClick={handleClose}>My account</MenuItem>
+                                <MenuItem onClick={handleClose1}>Profile</MenuItem>
+                                <MenuItem onClick={handleClose1}>My account</MenuItem>
                             </Menu>
                         </div>
 
@@ -113,16 +171,15 @@ const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
                             alignItems: 'center',
                         }}
                     >
-                        <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-                            {[0, 1, 2, 3].map((value) => {
-                                const labelId = `checkbox-list-label-${value}`;
+                        <List sx={{ width: '100%', maxWidth: 860, bgcolor: 'background.paper' }}>
+                            {usuarioS.todos.map((value) => {
 
                                 return (
                                     <ListItem
-                                        key={value}
+                                        key={value.id}
                                         secondaryAction={
                                             <IconButton edge="end" aria-label="comments">
-                                                <CommentIcon />
+                                                <DeleteOutlineOutlinedIcon />
                                             </IconButton>
                                         }
                                         disablePadding
@@ -131,13 +188,12 @@ const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
                                             <ListItemIcon>
                                                 <Checkbox
                                                     edge="start"
-                                                    checked={checked.indexOf(value) !== -1}
+                                                    checked={checked.indexOf(value.check) === false}
                                                     tabIndex={-1}
                                                     disableRipple
-                                                    inputProps={{ 'aria-labelledby': labelId }}
                                                 />
                                             </ListItemIcon>
-                                            <ListItemText id={labelId} primary={`Line item ${value + 1}`} />
+                                            <ListItemText id={value.id} primary={`${value.texto}`} />
                                         </ListItemButton>
                                     </ListItem>
                                 );
@@ -145,8 +201,39 @@ const ToDoList = ({usuarios,setUsuarios,idLogeado,setIdLogeado}) => {
                         </List>
 
 
+                        <Fab color="primary" aria-label="add" onClick={handleClickOpen}>
+                            <AddIcon />
+                        </Fab>
+
+
+                        <Dialog open={open} onClose={handleClose2}>
+                            <DialogTitle>Añadir To Do</DialogTitle>
+                            <DialogContent>
+                                <DialogContentText>
+                                    Aqui podras añadir a tu lista, un To Do.
+                                </DialogContentText>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="texto"
+                                    label="Texto"
+                                    type="texto"
+                                    fullWidth
+                                    variant="standard"
+                                    onChange={(event) => setTexto(event.target.value)}
+                                />
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={handleClose2}>Cancelar</Button>
+                                <Button onClick={crearLista}>Crear</Button>
+                            </DialogActions>
+                        </Dialog>
+
+
                     </Box>
+
                 </Container>
+
             </ThemeProvider>
         </>
     )
