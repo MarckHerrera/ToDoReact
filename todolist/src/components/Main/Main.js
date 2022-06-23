@@ -27,6 +27,8 @@ function Main() {
     logeadoInicial = false;
   }
 
+  
+
   const [usuarios, setUsuarios] = useState(usuariosIniciales)
   const [idLogeado, setIdLogeado] = useState(logeadoIdInicial)
   const [logeado, setLogeado] = useState(logeadoInicial)
@@ -49,6 +51,7 @@ function Main() {
       <BrowserRouter>
 
         <Routes>
+
           <Route path="/" element={
             <Login
               usuarios={usuarios}
@@ -69,6 +72,7 @@ function Main() {
             setIdLogeado={setIdLogeado}
             />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
 
       </BrowserRouter>

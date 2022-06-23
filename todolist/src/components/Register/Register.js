@@ -12,11 +12,26 @@ import Container from '@mui/material/Container';
 import { Link as Mandar, useNavigate } from "react-router-dom";
 import Theme from "../Theme/Theme";
 import { ThemeProvider } from '@mui/material/styles';
-
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 export default function Register({ usuarios, setUsuarios }) {
 
+    const MySwal = withReactContent(Swal)
+
     const navigate = useNavigate();
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer)
+          toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+      })
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -35,14 +50,27 @@ export default function Register({ usuarios, setUsuarios }) {
         }
 
         if (!data.get('nombre') || !data.get('email') || !data.get('password')) {
-            console.log('faltan datos')
+            MySwal.fire({
+                title: <p>Ingrese valores porfavor</p>,
+                icon: 'warning',
+                iconColor: '#774360',
+                showCloseButton: true,
+                confirmButtonColor: '#774360',
+              })
 
         } else {
             setUsuarios(
 
                 [...usuarios, nuevoUsuario],
-                navigate('/login')
+                
+                
             )
+            navigate('/login', {replace: true})
+            Toast.fire({
+                icon: 'success',
+                iconColor: '#774360',
+                title: nuevoUsuario.nombre + ' ' + 'Registrado correctamente'
+              })
         }
 
     };

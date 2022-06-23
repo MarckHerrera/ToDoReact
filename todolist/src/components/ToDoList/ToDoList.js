@@ -1,6 +1,6 @@
 import { Button, Container, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Fab, TextField } from '@mui/material'
 import { Box, ThemeProvider } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -18,10 +18,23 @@ import Checkbox from '@mui/material/Checkbox';
 import CommentIcon from '@mui/icons-material/Comment';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-
+import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
+import './ToDoList.css';
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import { useNavigate } from "react-router-dom";
 
 const ToDoList = ({ usuarios, setUsuarios, idLogeado, setIdLogeado }) => {
+    const navigate = useNavigate();
+    let usuarioBuscado = usuarios.find((user) => {
+        return user.id === idLogeado
+    })
+    let [usuarioS, setUsuarioS] = useState(usuarioBuscado);
 
+    let listaLocal = JSON.parse(localStorage.getItem("Lista" + "=" + usuarioS.email));
+    if (listaLocal === null) {
+        listaLocal = [];
+    }
     /* navb i */
     const [auth, setAuth] = React.useState(true);
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -45,69 +58,137 @@ const ToDoList = ({ usuarios, setUsuarios, idLogeado, setIdLogeado }) => {
     /* mis cosas */
     const tema = Theme;
 
-    let usuarioBuscado = usuarios.find((user) => {
-        return user.id === idLogeado
-    })
+    const MySwal = withReactContent(Swal)
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer)
+          toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+      })
+
+    
 
     let [texto, setTexto] = useState('');
-    let [usuarioS, setUsuarioS] = useState(usuarioBuscado);
+    
+    let [lista, setLista] = useState(listaLocal)
+
+    let[editTodo, setEditTodo] = useState(null);
+    let[editText, setEditText] = useState('');
+
+     useEffect(() => {
+        localStorage.setItem('Lista' + "=" + usuarioS.email, JSON.stringify(lista))
+    }, [lista])  
 
 
 
-
-
-    const crearLista = () => {
+    const crearLista = (event) => {
+        event.preventDefault();
 
         let nuevoTodo = {
-
-            id: 0,
-            check: false,
+            id: lista.length,
             texto: texto,
+            completado: false
 
         }
         if (!texto) {
             console.log('faltan datos')
 
         } else {
-            let cantidad = (usuarioS.todos.length)
-        
-            setUsuarioS(
-                {
-                    id: usuarioS.id, 
-                    nombre: usuarioS.nombre, 
-                    email: usuarioS.email, 
-                    password: usuarioS.password, 
-                    todos: [...usuarioS.todos, { id: cantidad, check: false, texto: texto }]
-                }
+            setLista(
+            [...lista, nuevoTodo],
             )
-
+            setTexto(
+                ''
+            )
             setOpen(false)
         }
-
     };
+
+    function eliminarTodo(id){
+        const actualizarTodo = [...lista].filter((todo) => todo.id !== id)
+        MySwal.fire({
+            title: <p>¿Seguro que quieres eliminar?</p>,
+            icon: 'question',
+            iconColor: '#774360',
+            showCloseButton: true,
+            confirmButtonColor: '#774360',
+            cancelButtonColor: '#B25068',
+            confirmButtonText: 'Si quiero',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+          }).then((result) => {
+            if(result.isConfirmed){
+                Toast.fire({
+                    icon: 'success',
+                    iconColor: '#774360',
+                    title: 'ToDo Eliminado'
+                  })
+                setLista(
+                    actualizarTodo
+                    )
+            }
+          })
+        
+        
+    }
+
+    function chekearChange(id){
+        const actualizarCheck = [...lista].map((todo)=>{
+            if(todo.id === id){
+                todo.completado = !todo.completado
+            }
+            return todo
+        })
+
+        setLista(
+            actualizarCheck
+            )
+    }
+
+    function editarTodo(){
+        const actualizarTodo = [...lista].map((todo)=>{
+            if(todo.id === editTodo){
+                todo.texto = editText
+            }
+            return todo
+        })
+        setLista(
+            actualizarTodo
+            )
+        
+    }
+
+    function handleClickOpened(id,text){
+        setOpened(true);
+        setEditTodo(id)
+        setEditText(text)
+    }
+
+    function cerrarS(){
+        navigate('/', {replace: true})
+        localStorage.setItem('IdLogeado','false')
+        localStorage.setItem('Logeado','null')
+
+        Toast.fire({
+            icon: 'success',
+            iconColor: '#774360',
+            title: usuarioS.nombre + ' ' +'Cerro Sesión'
+          })
+    }
+
     /* mis cosasas/// */
 
 
 
-    /* lista i */
-    const [checked, setChecked] = React.useState([0]);
-
-    const handleToggle = (value) => () => {
-        const currentIndex = checked.indexOf(value);
-        const newChecked = [...checked];
-
-        if (currentIndex === -1) {
-            newChecked.push(value);
-        } else {
-            newChecked.splice(currentIndex, 1);
-        }
-
-        setChecked(newChecked);
-    };
-    /* lista f */
-
     /* Dialog i */
     const [open, setOpen] = React.useState(false);
+    const [opened, setOpened] = React.useState(false);
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -115,6 +196,11 @@ const ToDoList = ({ usuarios, setUsuarios, idLogeado, setIdLogeado }) => {
 
     const handleClose2 = () => {
         setOpen(false);
+    };
+
+
+    const handleClose3 = () => {
+        setOpened(false);
     };
     /* Dialog f */
     return (
@@ -152,8 +238,9 @@ const ToDoList = ({ usuarios, setUsuarios, idLogeado, setIdLogeado }) => {
                                 open={Boolean(anchorEl)}
                                 onClose={handleClose1}
                             >
-                                <MenuItem onClick={handleClose1}>Profile</MenuItem>
-                                <MenuItem onClick={handleClose1}>My account</MenuItem>
+                                <MenuItem >{usuarioS.nombre}</MenuItem>
+                                <MenuItem >{usuarioS.email}</MenuItem>
+                                <MenuItem onClick={cerrarS}>Cerrar Sesión</MenuItem>
                             </Menu>
                         </div>
 
@@ -171,31 +258,44 @@ const ToDoList = ({ usuarios, setUsuarios, idLogeado, setIdLogeado }) => {
                             alignItems: 'center',
                         }}
                     >
-                        <List sx={{ width: '100%', maxWidth: 860, bgcolor: 'background.paper' }}>
-                            {usuarioS.todos.map((value) => {
+                        <List sx={{ width: '600px', maxWidth: 1000, bgcolor: 'background.paper' }}>
+                            {lista.map((value) => {
 
                                 return (
                                     <ListItem
                                         key={value.id}
                                         secondaryAction={
-                                            <IconButton edge="end" aria-label="comments">
+                                            <>
+                                            <IconButton edge="end" aria-label="comments" onClick={() => eliminarTodo(value.id)} >
                                                 <DeleteOutlineOutlinedIcon />
-                                            </IconButton>
+                                            </IconButton> 
+                                            <IconButton edge="end" aria-label="comments" onClick={() => handleClickOpened(value.id, value.texto)} >
+                                                <ModeEditOutlineOutlinedIcon />
+                                            </IconButton> 
+                                            </>
+                                            
                                         }
+
+                                        
                                         disablePadding
                                     >
-                                        <ListItemButton role={undefined} onClick={handleToggle(value)} dense>
+                                        
+                                        <ListItemButton role={undefined}dense>
                                             <ListItemIcon>
                                                 <Checkbox
-                                                    edge="start"
-                                                    checked={checked.indexOf(value.check) === false}
-                                                    tabIndex={-1}
-                                                    disableRipple
+                                                   edge="start"
+                                                   checked={value.completado}
+                                                   disableRipple
+                                                   onChange={() => chekearChange(value.id)}
                                                 />
                                             </ListItemIcon>
-                                            <ListItemText id={value.id} primary={`${value.texto}`} />
+                                            <ListItemText Textid={value.id} className={value.completado ? ('tachado') : (null) }  primary={`${value.texto}`} />
+                    
                                         </ListItemButton>
                                     </ListItem>
+                                    
+                                        
+
                                 );
                             })}
                         </List>
@@ -226,6 +326,30 @@ const ToDoList = ({ usuarios, setUsuarios, idLogeado, setIdLogeado }) => {
                             <DialogActions>
                                 <Button onClick={handleClose2}>Cancelar</Button>
                                 <Button onClick={crearLista}>Crear</Button>
+                            </DialogActions>
+                        </Dialog>
+
+                        <Dialog open={opened} onClose={handleClose3}>
+                            <DialogTitle>Editar To Do</DialogTitle>
+                            <DialogContent>
+                                <DialogContentText>
+                                    Aqui podras editar tu lista, un To Do.
+                                </DialogContentText>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="texto"
+                                    label="Texto"
+                                    type="texto"
+                                    fullWidth
+                                    variant="standard"
+                                    onChange={(event) => setEditText(event.target.value)}
+                                    value={editText}
+                                />
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={handleClose3}>Cancelar</Button>
+                                <Button onClick={editarTodo}>Editar</Button>
                             </DialogActions>
                         </Dialog>
 
